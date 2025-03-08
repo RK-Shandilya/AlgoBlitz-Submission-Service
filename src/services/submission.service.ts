@@ -38,6 +38,8 @@ export class SubmissionService {
             throw new SubmissionCreationError('Failed to create a submission in the repository');
         }
 
+        console.log('Submission created successfully', submission);
+
         const response = await SubmissionProducer({
             [submission._id.toString()]: {
                 code: submission.code,
@@ -51,4 +53,4 @@ export class SubmissionService {
 
         return { queueResponse: response, submission };
     }
-}
+};

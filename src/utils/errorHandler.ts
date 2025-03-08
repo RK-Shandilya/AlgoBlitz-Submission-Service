@@ -1,21 +1,26 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import BaseError from "../errors/base.error.js";
 import { ErrorType } from "../types/error.type.js";
 
-export default function errorHandler(error: ErrorType, request: Request,response: Response) {
+export default function errorHandler(
+    error: ErrorType,
+    request: Request,
+    response: Response,
+    next: NextFunction
+) {
     if (error instanceof BaseError) {
-        response.status(error.statusCode).send({
+        response.status(error.statusCode).json({
             success: false,
             message: error.message,
             error: error.details,
-            data: {}
+            data: {},
         });
     } else {
-        response.status(500).send({
+        response.status(500).json({
             success: false,
-            message: "something went wrong!",
+            message: "Something went wrong!",
             error: error.message || error,
-            data: {}
+            data: {},
         });
     }
 }
