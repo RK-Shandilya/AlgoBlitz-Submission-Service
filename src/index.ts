@@ -20,6 +20,6 @@ dbConnect();
 
 evaluationWorker("EvaluationQueue");
 
-app.listen(serverConfig.PORT, () => {
+app.listen(serverConfig.PORT, async() => {
     console.log(`Server is running on port ${serverConfig.PORT}`);
 });
