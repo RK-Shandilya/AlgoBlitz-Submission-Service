@@ -4,3 +4,15 @@ export default interface SubmissionPayloadType {
     code: string;
     language: string;
 }
+
+export interface TestCase {
+    input: string,
+    output: string
+}
+
+export interface CodeStub {
+    language: string,
+    startSnippet: string,
+    userSnippet: string,
+    endSnippet: string
+}

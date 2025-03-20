@@ -1,14 +1,34 @@
-import Submission from "../models/submission.model.js";
-import SubmissionPayloadType from "../types/submissionPayload.types.js";
+import { AddSubmission } from '../dtos/addSubmission.dto.js';
+import NotfoundError from '../errors/notFound.dto.js';
+import Submission from '../models/submission.model.js';
 
-export default class SubmissionRepository {
-    private submssionModal: typeof Submission;
+class SubmissionRepository {
+    private submissionModel;
+    
     constructor() {
-        this.submssionModal = Submission;
+        this.submissionModel = Submission;
     }
 
-    async createSubmission(submissionPayload: SubmissionPayloadType) {
-        const responce = await this.submssionModal.create(submissionPayload);
-        return responce;
+    async createSubmission(submissionData: AddSubmission) {
+        const response = await this.submissionModel.create(submissionData);
+        return response;
+    }
+
+    async getSubmission(id: string) {
+        try {
+            const response = await this.submissionModel.findById(id);
+            if(!response) {
+                throw new NotfoundError('Submission Id', id);
+            }
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateSubmission(id: string, status: string) {
+        await this.submissionModel.findByIdAndUpdate(id, { status });
     }
 }
+
+export default SubmissionRepository;

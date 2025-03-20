@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import {SubmissionService} from "../services/submission.service.js";
+import SubmissionService from "../services/submission.service.js";
 import SubmissionRepository from "../repositories/submission.repository.js";
 
 const submissionRepository = new SubmissionRepository();

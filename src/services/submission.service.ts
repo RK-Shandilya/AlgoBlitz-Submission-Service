@@ -1,89 +1,48 @@
 import fetchProblemDetails from '../apis/problemAdmin.api.js';
-import SubmissionCreationError from '../errors/SubmissionCreation.error.js';
-import SubmissionProducer from "../producers/submission.producer.js";
-import javaTemplate from '../templates/java.template.js';
+import { AddSubmission } from '../dtos/addSubmission.dto.js';
+import BadrequestError from '../errors/badRequest.error.js';
+import InternalServerError from '../errors/internalServer.error.js';
+import submissionProducer from '../producers/submission.producer.js';
+import SubmissionRepository from '../repositories/submission.repository.js';
 
-interface IMeta 
-    {
-        language: string,
-        functionName: string,
-        parameters: [
-          {
-            name: string,
-            type: string
-          },
-          {
-            name: string,
-            type: string
-          }
-        ],
-        returnType: string
-      }
+class SubmissionService {
+    private submissionRepository;
 
-interface Ip {
-    name: string,
-    type: string
-}
-
-export class SubmissionService {
-    private submissionRepository: any;
-
-    constructor(submissionRepository: any) {
+    constructor(submissionRepository: SubmissionRepository) {
         this.submissionRepository = submissionRepository;
     }
 
-    async pingCheck(): Promise<string> {
-        return 'pong';
-    }
-
-    async addSubmission(submissionPayload: any): Promise<any> {
-        const problemId = submissionPayload.problemId;
-        const userId = submissionPayload.userId;
-
-        const problemAdminApiResponse = await fetchProblemDetails(problemId);
-
-        if (!problemAdminApiResponse) {
-            throw new SubmissionCreationError('Failed to fetch problem details');
+    async addSubmission(submissionData: AddSubmission) {
+        const problemId = submissionData.problemId;
+        const userId = submissionData.userId;
+        const problemResponseDetails = await fetchProblemDetails(problemId);
+        if(!problemResponseDetails) {
+            throw new InternalServerError(problemResponseDetails);
         }
-
-        const languageCodeStub = problemAdminApiResponse.data.codeStubs.find(
-            (codeStub: any) => codeStub.language.toLowerCase() === submissionPayload.language.toLowerCase()
-        );
-
-        if (!languageCodeStub) {
-            throw new SubmissionCreationError('Invalid language');
+        const languageCodeStub = problemResponseDetails.data.codeStubs.filter((codeStub: any) => codeStub.language.toLowerCase() == submissionData.language.toLowerCase());
+        const endSnippet = (languageCodeStub[0].endSnippet) ? languageCodeStub[0].endSnippet : '';
+        submissionData.code = `${languageCodeStub[0].startSnippet}\n\n${submissionData.code}\n\n${endSnippet}`;
+        console.log(submissionData.code);
+        const submission = await this.submissionRepository.createSubmission(submissionData);
+        if(!submission) {
+            throw new BadrequestError('Submission Data', {submissionData});
         }
-
-        console.log("First code", submissionPayload.code);
-        const javaFunctionMeta = problemAdminApiResponse.data.functionMetadata.find((meta: IMeta) => meta.language === "java");
-        const processedFunctionMeta = {
-            language: javaFunctionMeta.language,
-            functionName: javaFunctionMeta.functionName,
-            parameters: javaFunctionMeta.parameters.map((p:Ip) => ({
-              name: { type: p.name, required: true },
-              type: { type: p.type, required: true }
-            })),
-            returnType: javaFunctionMeta.returnType
-          };
-        const completeCode = javaTemplate(submissionPayload.code, problemAdminApiResponse.data.testCases, processedFunctionMeta)
-        submissionPayload.code = `${completeCode}`;
-        const submission = await this.submissionRepository.createSubmission(submissionPayload);
-        if (!submission) {
-            throw new SubmissionCreationError('Failed to create a submission in the repository');
-        }
-
-        console.log('Submission created successfully', submission);
-
-        const response = await SubmissionProducer({
-            [submission._id.toString()]: {
-                code: submission.code,
-                language: submission.language,
-                testCases: problemAdminApiResponse.data.testCases,
+        await submissionProducer({
+            [submission._id as unknown as string]: {
+                code: submissionData.code,
+                language: submissionData.language,
+                testCases: problemResponseDetails.data.testCases,
                 userId,
-                submissionId: submission._id,
-            },
+                submissionId: submission._id as unknown as string
+            }
         });
-
-        return { queueResponse: response, submission };
+        return submission;
     }
-};
+
+    async getSubmission(submissionId: string) {
+        const submission = await this.submissionRepository.getSubmission(submissionId);
+        return submission;
+    }
+}
+
+export default SubmissionService;
