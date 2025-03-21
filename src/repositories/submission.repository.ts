@@ -1,6 +1,6 @@
-import { AddSubmission } from '../dtos/addSubmission.dto.js';
 import NotfoundError from '../errors/notFound.dto.js';
 import Submission from '../models/submission.model.js';
+import SubmissionPayloadType from '../types/submissionPayload.types.js';
 
 class SubmissionRepository {
     private submissionModel;
@@ -9,7 +9,7 @@ class SubmissionRepository {
         this.submissionModel = Submission;
     }
 
-    async createSubmission(submissionData: AddSubmission) {
+    async createSubmission(submissionData: SubmissionPayloadType) {
         const response = await this.submissionModel.create(submissionData);
         return response;
     }

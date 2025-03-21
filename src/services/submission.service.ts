@@ -1,9 +1,9 @@
 import fetchProblemDetails from '../apis/problemAdmin.api.js';
-import { AddSubmission } from '../dtos/addSubmission.dto.js';
 import BadrequestError from '../errors/badRequest.error.js';
 import InternalServerError from '../errors/internalServer.error.js';
 import submissionProducer from '../producers/submission.producer.js';
 import SubmissionRepository from '../repositories/submission.repository.js';
+import SubmissionPayloadType from '../types/submissionPayload.types.js';
 
 class SubmissionService {
     private submissionRepository;
@@ -12,7 +12,7 @@ class SubmissionService {
         this.submissionRepository = submissionRepository;
     }
 
-    async addSubmission(submissionData: AddSubmission) {
+    async addSubmission(submissionData: SubmissionPayloadType) {
         const problemId = submissionData.problemId;
         const userId = submissionData.userId;
         const problemResponseDetails = await fetchProblemDetails(problemId);
