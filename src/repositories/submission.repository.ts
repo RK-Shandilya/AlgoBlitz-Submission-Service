@@ -25,10 +25,6 @@ class SubmissionRepository {
             throw error;
         }
     }
-
-    async updateSubmission(id: string, status: string) {
-        await this.submissionModel.findByIdAndUpdate(id, { status });
-    }
 }
 
 export default SubmissionRepository;
