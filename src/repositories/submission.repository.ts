@@ -25,6 +25,20 @@ class SubmissionRepository {
             throw error;
         }
     }
+
+    public async updateSubmission(id: string, status: string) {
+        try {
+            const response = await this.submissionModel.findByIdAndUpdate(id, {
+                status: status
+            }, {new: true});
+            if(!response) {
+                throw new NotfoundError('Submission Id', id);
+            }
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default SubmissionRepository;
